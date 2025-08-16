@@ -43,7 +43,7 @@ router.patch('/',async(req,res)=>{
 });
 router.delete('/',async(req,res)=>{
     try{
-        const{_id}=req.params;
+        const{_id}=req.body;
         if(!_id){
             return res.status(400).json({message:"ID is required"});
         }
