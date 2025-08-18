@@ -8,19 +8,15 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
 app.use('/api/expense', expenseRoutes);
 
-// Test route
 app.get('/', (req, res) => {
   res.send('Server is properly connected!');
 });
 
-// Connect to MongoDB and start server
 const PORT = parseInt(process.env.PORT) || 3000;
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
