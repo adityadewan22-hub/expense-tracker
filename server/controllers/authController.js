@@ -1,5 +1,6 @@
 import User from "../models/User";
 import generateToken from "../utils/token";
+import bcrypt from "bcrypt";
 
 const registerUser = async (req, res) => {
   try {
@@ -29,4 +30,29 @@ const registerUser = async (req, res) => {
   }
 };
 
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    if (!(await user.matchPassword(password))){
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    res.status(200).json({
+      token: generateToken(user._id),
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
 export { registerUser };
+export {loginUser};
