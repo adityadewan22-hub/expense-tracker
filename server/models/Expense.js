@@ -11,10 +11,12 @@ const expenseSchema= new mongoose.Schema({
     },
     date:{
         type: String,
-        required:true,
+        default:Date.now,
 
     },
-});
+},
+{timestamp:true}
+);
 
 const Expense= mongoose.model('Expense',expenseSchema);
 export default Expense;
