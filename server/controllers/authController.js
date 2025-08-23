@@ -3,6 +3,7 @@ import generateToken from "../utils/token.js";
 
 
 const registerUser = async (req, res) => {
+  console.log("REQ BODY:", req.body);
   try {
     const { name, email, password } = req.body;
     const userExists = await User.findOne({ email });
