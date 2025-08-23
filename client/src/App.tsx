@@ -1,6 +1,5 @@
-import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ExpenseList from "./components/ExpenseList";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectRoute from "./routes/protectRoute";
 import Login from "./pages/login";
 import Register from "./pages/register";
@@ -10,15 +9,15 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/Register" element={<Register />} />
-        <Route>
-          path="/expenses" element=
-          {
+        <Route path="/register" element={<Register />} />
+        <Route
+          path="/expenses"
+          element={
             <ProtectRoute>
-              <ExpenseList></ExpenseList>
+              <ExpenseList />
             </ProtectRoute>
           }
-        </Route>
+        />
       </Routes>
     </BrowserRouter>
   );

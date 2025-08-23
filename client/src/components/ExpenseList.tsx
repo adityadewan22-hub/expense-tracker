@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { fetchExpense } from "../api";
+import { useEffect, useState } from "react";
+import { FetchExpense } from "../api";
 
 const ExpenseList: React.FC = () => {
   const [expenses, setExpenses] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchExpense()
-      .then((res) => setExpenses(res.data))
+    FetchExpense()
+      .then((data) => setExpenses(data))
       .catch((err) => console.error(err));
   }, []);
 
@@ -15,7 +15,9 @@ const ExpenseList: React.FC = () => {
       <h1>Expenses</h1>
       <ul>
         {expenses.map((exp) => (
-          <li key={exp._id}>{exp.title}-$(exp.amount)</li>
+          <li key={exp._id}>
+            {exp.title}-${exp.amount}
+          </li>
         ))}
       </ul>
     </div>
