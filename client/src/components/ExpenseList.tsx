@@ -22,20 +22,32 @@ const ExpenseList = () => {
 
   const handleAddExpense = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const tempExpense: Expense = {
+      _id: Date.now().toString(),
+      amount: Number(amount),
+      category,
+    };
+
+    setExpenses((prev) => [...prev, tempExpense]);
+
+    setAmount("");
+    setCategory("");
     try {
       const newExpense = await addExpense({
-        amount,
+        amount: Number(amount),
         category,
       });
-      setExpenses((prev) => [...prev, newExpense]);
-      setAmount("");
-      setCategory("");
+      setExpenses((prev) =>
+        prev.map((exp) => (exp._id === tempExpense._id ? newExpense : exp))
+      );
     } catch (err) {
       if (err instanceof Error) {
         console.log(err.message);
       } else {
         console.log(err);
       }
+      setExpenses((prev) => prev.filter((exp) => exp._id !== tempExpense._id));
     }
   };
 
