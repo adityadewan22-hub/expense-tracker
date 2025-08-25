@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { addExpense, FetchExpense } from "../api";
 
-const ExpenseList: React.FC = () => {
-  const [expenses, setExpenses] = useState<any[]>([]);
+interface Expense {
+  _id: string;
+  amount: number;
+  category: string;
+}
+
+const ExpenseList = () => {
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
