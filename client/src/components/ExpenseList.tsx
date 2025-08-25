@@ -44,13 +44,13 @@ const ExpenseList: React.FC = () => {
       <form onSubmit={handleAddExpense}>
         <input
           type="number"
-          value={"amount"}
+          value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder="Amount"
         />
         <input
           type="string"
-          value={"category"}
+          value={category}
           onChange={(e) => setCategory(e.target.value)}
           placeholder="Category"
         />
@@ -59,7 +59,7 @@ const ExpenseList: React.FC = () => {
       <ul>
         {expenses.map((exp) => (
           <li key={exp._id}>
-            {exp.title}-${exp.amount}
+            {exp.category}-${exp.amount}
           </li>
         ))}
       </ul>
