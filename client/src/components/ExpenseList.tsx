@@ -5,6 +5,7 @@ interface Expense {
   _id: string;
   amount: number;
   category: string;
+  date: string;
 }
 
 const ExpenseList = () => {
@@ -12,6 +13,7 @@ const ExpenseList = () => {
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
+  const [date, setDate] = useState("");
 
   useEffect(() => {
     FetchExpense()
@@ -27,16 +29,19 @@ const ExpenseList = () => {
       _id: Date.now().toString(),
       amount: Number(amount),
       category,
+      date,
     };
 
     setExpenses((prev) => [...prev, tempExpense]);
 
     setAmount("");
     setCategory("");
+    setDate("");
     try {
       const newExpense = await addExpense({
         amount: Number(amount),
         category,
+        date: new Date(date),
       });
       setExpenses((prev) =>
         prev.map((exp) => (exp._id === tempExpense._id ? newExpense : exp))
@@ -72,12 +77,18 @@ const ExpenseList = () => {
           onChange={(e) => setCategory(e.target.value)}
           placeholder="Category"
         />
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          placeholder="Date"
+        />
         <button type="submit">Add Expense</button>
       </form>
       <ul>
         {expenses.map((exp) => (
           <li key={exp._id}>
-            {exp.category}-${exp.amount}
+            {exp.category}-${exp.amount}({exp.date})
           </li>
         ))}
       </ul>
