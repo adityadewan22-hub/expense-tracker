@@ -14,6 +14,12 @@ const ExpenseList = () => {
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
+  const [editData, setEditData] = useState({
+    category: "",
+    amount: 0,
+    date: "",
+  });
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     FetchExpense()
@@ -109,6 +115,46 @@ const ExpenseList = () => {
         {expenses.map((exp) => (
           <li key={exp._id}>
             {exp.category}-${exp.amount}({exp.date})
+            <button
+              onClick={() => handleDelete(exp._id)}
+              style={{ marginLeft: "10px", color: "red" }}
+            >
+              Delete
+            </button>
+            {editingId === exp._id && (
+              <>
+                <input
+                  type="text"
+                  value={editData.category}
+                  onChange={(e) =>
+                    setEditData({ ...editData, category: e.target.value })
+                  }
+                />
+                <input
+                  type="number"
+                  value={editData.amount}
+                  onChange={(e) =>
+                    setEditData({ ...editData, amount: Number(e.target.value) })
+                  }
+                />
+                <input
+                  type="date"
+                  value={editData.date}
+                  onChange={(e) =>
+                    setEditData({ ...editData, date: e.target.value })
+                  }
+                />
+                <button
+                  onClick={() => {
+                    handleEdit(exp._id, editData);
+                    setEditingId(null);
+                  }}
+                >
+                  Save
+                </button>
+                <button onClick={() => setEditingId(null)}>Cancel</button>
+              </>
+            )}
           </li>
         ))}
       </ul>
