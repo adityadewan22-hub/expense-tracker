@@ -1,4 +1,5 @@
 import axios from "axios";
+import type { Expense } from "./components/ExpenseList";
 
 const api= axios.create({
     baseURL:"http://localhost:3000/api",
@@ -24,18 +25,18 @@ api.interceptors.response.use(
     );
 
 export const FetchExpense=async()=>{
-    const res= await api.get("/expenses");
+    const res= await api.get("/expense");
     return res.data;
 }
 export const addExpense=async(data:any)=>{
-    const res =await api.post("/expenses",data);
+    const res =await api.post("/expense",data);
     return res.data;
 }
-export const updateExpense=async(id :string,data:any)=>{
-    const res=await api.patch(`/expenses/${id}`,data);
+export const updateExpense=async(id :string,data:Partial<Expense>):Promise<Expense>=>{
+    const res=await api.patch(`/expense/${id}`,data);
     return res.data;
 }
 export const deleteExpense=async(id:string)=>{
-    const res=await api.delete(`/expenses/${id}`);
+    const res=await api.delete(`/expense/${id}`);
     return res.data;
 }

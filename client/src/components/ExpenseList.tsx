@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { addExpense, FetchExpense } from "../api";
+import { addExpense, deleteExpense, FetchExpense, updateExpense } from "../api";
 
-interface Expense {
+export interface Expense {
   _id: string;
   amount: number;
   category: string;
@@ -34,18 +34,20 @@ const ExpenseList = () => {
 
     setExpenses((prev) => [...prev, tempExpense]);
 
-    setAmount("");
-    setCategory("");
-    setDate("");
     try {
       const newExpense = await addExpense({
         amount: Number(amount),
         category,
-        date: new Date(date),
+        date,
       });
+
       setExpenses((prev) =>
         prev.map((exp) => (exp._id === tempExpense._id ? newExpense : exp))
       );
+
+      setAmount("");
+      setCategory("");
+      setDate("");
     } catch (err) {
       if (err instanceof Error) {
         console.log(err.message);
@@ -56,10 +58,28 @@ const ExpenseList = () => {
     }
   };
 
+  const handleDelete = async (_id: string) => {
+    try {
+      const success = await deleteExpense(_id);
+      if (success) {
+        setExpenses((prev) => prev.filter((e) => e._id !== _id));
+      }
+    } catch (err) {
+      console.error("Error deleting expense", err);
+    }
+  };
+
+  const handleEdit = async (_id: string, updatedData: Partial<Expense>) => {
+    try {
+      const success = await updateExpense(_id, updatedData);
+      if (success) {
+        setExpenses((prev) => prev.map((e) => (e._id === _id ? success : e)));
+      }
+    } catch (err) {
+      console.error("Error updating expense", err);
+    }
+  };
   if (loading) return <div>Loading....</div>;
-  if (expenses.length === 0) {
-    return <div>No expenses yet</div>;
-  }
 
   return (
     <div>
