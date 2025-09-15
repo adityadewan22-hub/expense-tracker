@@ -5,7 +5,7 @@ import { recordAction, redo, undo } from "../components/utils/undo,redo";
 import { dashboardSummary } from "../components/utils/dashboard.ts";
 import { analytics } from "../components/utils/analytics.ts";
 import Modal from "../components/modal.tsx";
-import { updateExpense } from "../api.ts";
+import { addExpense, deleteExpense, updateExpense } from "../api.ts";
 
 export default function ExpensePage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -15,22 +15,30 @@ export default function ExpensePage() {
   const [amount, setAmount] = useState(0);
   const [date, setDate] = useState("");
 
-  const handleAddExpense = (expense: Expense) => {
-    recordAction({ type: "add", expense });
-    setExpenses((prev) => [...prev, expense]);
+  const handleAddExpense = async (expense: Expense) => {
+    try {
+      const savedExpense = await addExpense(expense); // save to backend
+      recordAction({ type: "add", expense: savedExpense });
+      setExpenses((prev) => [...prev, savedExpense]);
+    } catch (error) {
+      console.error("Failed to add expense", error);
+    }
   };
 
-  const handleDelete = (expense: Expense) => {
-    recordAction({ type: "delete", expense });
-    setExpenses((prev) => prev.filter((e) => e._id !== expense._id));
+  const handleDelete = async (expense: Expense) => {
+    try {
+      await deleteExpense(expense._id); // remove from backend
+      recordAction({ type: "delete", expense });
+      setExpenses((prev) => prev.filter((e) => e._id !== expense._id));
+    } catch (error) {
+      console.error("Failed to delete expense", error);
+    }
   };
 
   const handleEdit = async (prev: Expense, updated: Expense) => {
     try {
-      const savedExpense = await updateExpense(updated._id, updated);
-
+      const savedExpense = await updateExpense(updated._id, updated); // save changes
       recordAction({ type: "edit", expense: savedExpense, prev });
-
       setExpenses((prevList) =>
         prevList.map((e) => (e._id === savedExpense._id ? savedExpense : e))
       );
@@ -124,7 +132,28 @@ export default function ExpensePage() {
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
-          <button onClick={() => handleEdit(prevExpense, updateExpense)}>
+          <button
+            onClick={() => {
+              const newExpense: Expense = {
+                _id: editExpense?._id || Date.now().toString(),
+                category,
+                amount,
+                date,
+              };
+
+              if (editExpense) {
+                handleEdit(editExpense, newExpense);
+              } else {
+                handleAddExpense(newExpense);
+              }
+
+              setModalOpen(false);
+              setEditExpense(null);
+              setCategory("");
+              setAmount(0);
+              setDate("");
+            }}
+          >
             {editExpense ? "Save Changes" : "Add Expense"}
           </button>
         </div>
