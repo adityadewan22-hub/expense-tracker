@@ -1,11 +1,11 @@
 import express from 'express';
-import Expense from '../models/Expense.js';
+import Expense from '../models/Expenses.js';
 const router= express.Router();
 
 router.post('/',async(req,res)=>{
     try{
         const{amount,category,date}=req.body;
-        const newExpense= new Expense({amount,category,date});
+        const newExpense= new Expense({amount,category,date: date ? new Date(date) : new Date()});
         const savedExpense=await newExpense.save();
         console.log('Saved expense:', savedExpense);
         res.status(201).json(savedExpense);
