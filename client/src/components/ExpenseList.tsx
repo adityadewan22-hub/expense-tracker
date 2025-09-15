@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { addExpense, deleteExpense, FetchExpense, updateExpense } from "../api";
+import React from "react";
 
 export interface Expense {
   _id: string;
@@ -7,154 +6,53 @@ export interface Expense {
   category: string;
   date: string;
 }
+type ExpenseListProps = {
+  expenses: Expense[];
+  onEdit: (_id: string, updated: Partial<Expense>) => void;
+  onDelete: (_id: string) => void;
+};
 
-const ExpenseList = () => {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState("");
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState("");
-  const [editData, setEditData] = useState({
-    category: "",
-    amount: 0,
-    date: "",
-  });
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    FetchExpense()
-      .then((data) => setExpenses(data))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const handleAddExpense = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const tempExpense: Expense = {
-      _id: Date.now().toString(),
-      amount: Number(amount),
-      category,
-      date,
-    };
-
-    setExpenses((prev) => [...prev, tempExpense]);
-
-    try {
-      const newExpense = await addExpense({
-        amount: Number(amount),
-        category,
-        date,
-      });
-
-      setExpenses((prev) =>
-        prev.map((exp) => (exp._id === tempExpense._id ? newExpense : exp))
-      );
-
-      setAmount("");
-      setCategory("");
-      setDate("");
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log(err.message);
-      } else {
-        console.log(err);
-      }
-      setExpenses((prev) => prev.filter((exp) => exp._id !== tempExpense._id));
-    }
-  };
-
-  const handleDelete = async (_id: string) => {
-    try {
-      const success = await deleteExpense(_id);
-      if (success) {
-        setExpenses((prev) => prev.filter((e) => e._id !== _id));
-      }
-    } catch (err) {
-      console.error("Error deleting expense", err);
-    }
-  };
-
-  const handleEdit = async (_id: string, updatedData: Partial<Expense>) => {
-    try {
-      const success = await updateExpense(_id, updatedData);
-      if (success) {
-        setExpenses((prev) => prev.map((e) => (e._id === _id ? success : e)));
-      }
-    } catch (err) {
-      console.error("Error updating expense", err);
-    }
-  };
-  if (loading) return <div>Loading....</div>;
+const ExpenseList: React.FC<ExpenseListProps> = ({
+  expenses,
+  onEdit,
+  onDelete,
+}) => {
+  if (expenses.length === 0) {
+    return <p>No expenses yet. Add your first one!</p>;
+  }
 
   return (
     <div>
-      <h1>Expenses</h1>
-      <form onSubmit={handleAddExpense}>
-        <input
-          type="number"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="Amount"
-        />
-        <input
-          type="string"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          placeholder="Category"
-        />
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          placeholder="Date"
-        />
-        <button type="submit">Add Expense</button>
-      </form>
+      <h2>All Expenses</h2>
       <ul>
-        {expenses.map((exp) => (
-          <li key={exp._id}>
-            {exp.category}-${exp.amount}({exp.date})
-            <button
-              onClick={() => handleDelete(exp._id)}
-              style={{ marginLeft: "10px", color: "red" }}
+        {expenses.map((expense) => (
+          <li key={expense._id} style={{ marginBottom: "0.5rem" }}>
+            <strong>{expense.category}</strong> - ₹{expense.amount} on{" "}
+            {expense.date}
+            <div
+              style={{
+                display: "inline-flex",
+                gap: "0.5rem",
+                marginLeft: "1rem",
+              }}
             >
-              Delete
-            </button>
-            {editingId === exp._id && (
-              <>
-                <input
-                  type="text"
-                  value={editData.category}
-                  onChange={(e) =>
-                    setEditData({ ...editData, category: e.target.value })
-                  }
-                />
-                <input
-                  type="number"
-                  value={editData.amount}
-                  onChange={(e) =>
-                    setEditData({ ...editData, amount: Number(e.target.value) })
-                  }
-                />
-                <input
-                  type="date"
-                  value={editData.date}
-                  onChange={(e) =>
-                    setEditData({ ...editData, date: e.target.value })
-                  }
-                />
-                <button
-                  onClick={() => {
-                    handleEdit(exp._id, editData);
-                    setEditingId(null);
-                  }}
-                >
-                  Save
-                </button>
-                <button onClick={() => setEditingId(null)}>Cancel</button>
-              </>
-            )}
+              <button
+                onClick={() =>
+                  onEdit(expense._id, {
+                    category:
+                      prompt("New category", expense.category) ||
+                      expense.category,
+                    amount:
+                      Number(prompt("New amount", expense.amount.toString())) ||
+                      expense.amount,
+                    date: prompt("New date", expense.date) || expense.date,
+                  })
+                }
+              >
+                Edit
+              </button>
+              <button onClick={() => onDelete(expense._id)}>Delete</button>
+            </div>
           </li>
         ))}
       </ul>

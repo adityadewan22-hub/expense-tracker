@@ -1,9 +1,19 @@
 import type { Expense } from "../ExpenseList";
 import { groupByCategory,groupByMonth } from "./grouping";
 
-export function analytics(expenses:Expense[]){
+type AnalyticsResult = {
+  biggestExpense?: Expense;
+  topCategory?: { category: string; amount: number };
+  averageMonthly: number;
+};
+
+export function analytics(expenses:Expense[]):AnalyticsResult{
     if(expenses.length===0){
-        return {};
+        return {
+            biggestExpense:undefined,
+            topCategory:{category:"",amount:0},
+            averageMonthly:0
+        };
     }
     const byCategory=groupByCategory(expenses);
     const byMonth=groupByMonth(expenses);

@@ -32,11 +32,11 @@ export const addExpense=async(data:any)=>{
     const res =await api.post("/expense",data);
     return res.data;
 }
-export const updateExpense=async(id :string,data:Partial<Expense>):Promise<Expense>=>{
-    const res=await api.patch(`/expense/${id}`,data);
+export const updateExpense=async(_id :string,data:Partial<Expense>):Promise<Expense>=>{
+    const res=await api.patch<Expense>('/expense',{_id,...data});
     return res.data;
 }
-export const deleteExpense=async(id:string)=>{
-    const res=await api.delete(`/expense/${id}`);
+export const deleteExpense=async(_id:string)=>{
+    const res=await api.delete('/expense',{data:{_id}});
     return res.data;
 }

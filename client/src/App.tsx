@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectRoute from "./routes/protectRoute";
 import Login from "./pages/login";
 import Register from "./pages/register";
+import ExpensePage from "./pages/ExpensesPage";
 
 function App() {
   return (
@@ -14,7 +15,7 @@ function App() {
           path="/expenses"
           element={
             <ProtectRoute>
-              <ExpenseList />
+              <ExpensePage />
             </ProtectRoute>
           }
         />
