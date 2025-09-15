@@ -4,10 +4,16 @@ import ExpenseList from "../components/ExpenseList";
 import { recordAction, redo, undo } from "../components/utils/undo,redo";
 import { dashboardSummary } from "../components/utils/dashboard.ts";
 import { analytics } from "../components/utils/analytics.ts";
+import Modal from "../components/modal.tsx";
+import { updateExpense } from "../api.ts";
 
 export default function ExpensePage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [_, setForceUpdate] = useState(0);
+  const [editExpense, setEditExpense] = useState<Expense | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [category, setCategory] = useState("");
+  const [amount, setAmount] = useState(0);
+  const [date, setDate] = useState("");
 
   const handleAddExpense = (expense: Expense) => {
     recordAction({ type: "add", expense });
@@ -19,21 +25,26 @@ export default function ExpensePage() {
     setExpenses((prev) => prev.filter((e) => e._id !== expense._id));
   };
 
-  const handleEdit = (prev: Expense, updated: Expense) => {
-    recordAction({ type: "edit", expense: updated, prev });
-    setExpenses((prevList) =>
-      prevList.map((e) => (e._id === updated._id ? updated : e))
-    );
+  const handleEdit = async (prev: Expense, updated: Expense) => {
+    try {
+      const savedExpense = await updateExpense(updated._id, updated);
+
+      recordAction({ type: "edit", expense: savedExpense, prev });
+
+      setExpenses((prevList) =>
+        prevList.map((e) => (e._id === savedExpense._id ? savedExpense : e))
+      );
+    } catch (error) {
+      console.error("Failed to update expense", error);
+    }
   };
 
   const handleUndo = () => {
     setExpenses((prev) => undo(prev));
-    setForceUpdate((x) => x + 1);
   };
 
   const handleRedo = () => {
     setExpenses((prev) => redo(prev));
-    setForceUpdate((x) => x + 1);
   };
 
   const summary = dashboardSummary(expenses);
@@ -93,6 +104,31 @@ export default function ExpensePage() {
         onDelete={(expensesId) => handleDelete(expensesId)}
         onEdit={(expenseid) => handleDelete(expenseid)}
       />
+      <Modal open={modalOpen} close={() => setModalOpen(false)}>
+        <div>
+          <h2>{editExpense ? "Edit Expense" : "Add Expense"}</h2>
+          <input
+            type="text"
+            placeholder="Category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder="Amount"
+            value={amount}
+            onChange={(e) => setAmount(Number(e.target.value))}
+          />
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+          <button onClick={() => handleEdit(prevExpense, updateExpense)}>
+            {editExpense ? "Save Changes" : "Add Expense"}
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
