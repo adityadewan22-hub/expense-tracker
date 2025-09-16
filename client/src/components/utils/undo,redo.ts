@@ -1,3 +1,4 @@
+import  { addExpense, deleteExpense, updateExpense } from "../../api";
 import type { Expense } from "../ExpenseList";
 
 type Action=
@@ -13,7 +14,7 @@ export function recordAction(action:Action){
     redostack=[];
 }
 
-export function undo(expenses:Expense[]):Expense[]{
+export async function undo(expenses:Expense[]):Promise<Expense[]>{
     if(undostack.length===0){
         return expenses;
     }
@@ -22,21 +23,32 @@ export function undo(expenses:Expense[]):Expense[]{
         return expenses;
     }
     redostack.push(action);
+    try{
     switch(action.type){
         case "add":
+          await deleteExpense(action.expense._id);
             return expenses.filter(e=>e._id!==action.expense._id);
         case "delete":
-            return[...expenses,action.expense];
+          const addedExpense=await addExpense(action.expense); 
+            return[...expenses,addedExpense];
         case "edit":
+          const restoreExpense=await updateExpense(action.expense._id,action.prev);
             return expenses.map(e=>
-                e._id===action.expense._id?action.prev:e
+                e._id===restoreExpense._id?restoreExpense:e
             );
         default:
             return expenses;
     }
+  }
+  catch(error){
+    console.error("failed to sync with backend",error);
+    undostack.push(action);
+    redostack.pop();
+    return expenses;
+  }
 }
 
-export function redo(expenses: Expense[]): Expense[] {
+export async function redo(expenses: Expense[]): Promise<Expense[]> {
   if (redostack.length === 0) return expenses;
 
   const action = redostack.pop()!;
@@ -44,12 +56,15 @@ export function redo(expenses: Expense[]): Expense[] {
 
   switch (action.type) {
     case "add":
-      return [...expenses, action.expense];
+      const addedExpense=await addExpense(action.expense);
+      return [...expenses, addedExpense];
     case "delete":
+      await deleteExpense(action.expense._id);
       return expenses.filter(e => e._id !== action.expense._id);
     case "edit":
+      const updatedExpense= await updateExpense(action.expense._id,action.expense);
       return expenses.map(e =>
-        e._id === action.expense._id ? action.expense : e
+        e._id === updatedExpense._id ? updatedExpense : e
       );
     default:
       return expenses;

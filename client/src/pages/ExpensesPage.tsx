@@ -47,12 +47,18 @@ export default function ExpensePage() {
     }
   };
 
-  const handleUndo = () => {
-    setExpenses((prev) => undo(prev));
+  const handleUndo = async () => {
+    try {
+      const updatedExpenses = await undo(expenses);
+      setExpenses(updatedExpenses);
+    } catch (error) {
+      console.error("Failed to undo", error);
+    }
   };
 
-  const handleRedo = () => {
-    setExpenses((prev) => redo(prev));
+  const handleRedo = async () => {
+    const updatedExpenses = await redo(expenses);
+    setExpenses(updatedExpenses);
   };
 
   const summary = dashboardSummary(expenses);
