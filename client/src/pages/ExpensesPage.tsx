@@ -2,6 +2,17 @@ import React, { useState } from "react";
 import { redo, undo, recordAction } from "../components/utils/undo,redo";
 import { dashboardSummary } from "../components/utils/dashboard";
 import { analytics } from "../components/utils/analytics";
+import {
+  Button,
+  Box,
+  Container,
+  Heading,
+  Text,
+  Input,
+  Stack,
+  Card,
+  SimpleGrid,
+} from "@chakra-ui/react";
 
 export interface Expense {
   _id: string;
@@ -17,11 +28,9 @@ const ExpenseList: React.FC = () => {
   const [date, setDate] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Calculate dashboard and analytics
   const summary = dashboardSummary(expenses);
   const stats = analytics(expenses);
 
-  // Add new expense
   const handleAdd = () => {
     if (!amount || !category || !date) return;
 
@@ -32,14 +41,12 @@ const ExpenseList: React.FC = () => {
       date,
     };
 
-    // Record the action before updating state
     recordAction({ type: "add", expense: newExpense });
 
     setExpenses((prev) => [...prev, newExpense]);
     resetForm();
   };
 
-  // Start editing - store the original expense for undo
   const handleEditStart = (expense: Expense) => {
     setEditingId(expense._id);
     setAmount(expense.amount.toString());
@@ -47,7 +54,6 @@ const ExpenseList: React.FC = () => {
     setDate(expense.date);
   };
 
-  // Save edited expense
   const handleEditSave = () => {
     if (!editingId) return;
 
@@ -61,7 +67,6 @@ const ExpenseList: React.FC = () => {
       date,
     };
 
-    // Record the action before updating state
     recordAction({
       type: "edit",
       expense: updatedExpense,
@@ -76,18 +81,15 @@ const ExpenseList: React.FC = () => {
     setEditingId(null);
   };
 
-  // Delete expense
   const handleDelete = (id: string) => {
     const expenseToDelete = expenses.find((exp) => exp._id === id);
     if (!expenseToDelete) return;
 
-    // Record the action before updating state
     recordAction({ type: "delete", expense: expenseToDelete });
 
     setExpenses((prev) => prev.filter((exp) => exp._id !== id));
   };
 
-  // Reset form inputs
   const resetForm = () => {
     setAmount("");
     setCategory("");
@@ -117,266 +119,175 @@ const ExpenseList: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
-      <h2>Expense Tracker</h2>
+    <Box
+      minH="100vh"
+      bgGradient="linear(to-br, gray.50, teal.50)"
+      position="relative"
+    >
+      <Box position="absolute" inset={0} bg="gray" backdropFilter="blur(6px)" />
+      <Container maxW="6xl" position="relative" zIndex={1} py={10}>
+        <Heading mb={8} textAlign="center" color="teal.700">
+          💰 Expense Tracker
+        </Heading>
 
-      {/* Dashboard Summary */}
-      <div
-        style={{
-          marginBottom: "20px",
-          padding: "15px",
+        <Card.Root shadow="md" borderRadius="xl" mb={6}>
+          <Card.Header>
+            <Heading size="md">Dashboard Summary</Heading>
+          </Card.Header>
+          <Card.Body>
+            <Text mb={4}>
+              <strong>Balance:</strong> ${summary.balance}
+            </Text>
+            <SimpleGrid columns={{ base: 1, md: 2 }}>
+              <Box>
+                <Heading size="sm" mb={2}>
+                  By Category
+                </Heading>
+                {Array.from(summary.byCategory.entries()).map(([cat, amt]) => (
+                  <Text key={cat}>
+                    <strong>{cat}:</strong> ${amt}
+                  </Text>
+                ))}
+              </Box>
+              <Box>
+                <Heading size="sm" mb={2}>
+                  By Month
+                </Heading>
+                {Array.from(summary.byMonth.entries()).map(([month, amt]) => (
+                  <Text key={month}>
+                    <strong>{month}:</strong> ${amt}
+                  </Text>
+                ))}
+              </Box>
+            </SimpleGrid>
+          </Card.Body>
+        </Card.Root>
 
-          borderRadius: "8px",
-        }}
-      >
-        <h3>Dashboard Summary</h3>
-        <p>
-          <strong>Balance:</strong> ${summary.balance}
-        </p>
+        <Card.Root shadow="md" borderRadius="xl" mb={6}>
+          <Card.Header>
+            <Heading size="md">Analytics</Heading>
+          </Card.Header>
+          <Card.Body>
+            {stats.biggestExpense && (
+              <Text>
+                <strong>Biggest Expense:</strong>{" "}
+                {stats.biggestExpense.category} - ${stats.biggestExpense.amount}
+              </Text>
+            )}
+            {stats.topCategory.category && (
+              <Text>
+                <strong>Top Category:</strong> {stats.topCategory.category} ($
+                {stats.topCategory.amount})
+              </Text>
+            )}
+            {stats.averageMonthly > 0 && (
+              <Text>
+                <strong>Average Monthly Spending:</strong> $
+                {stats.averageMonthly.toFixed(2)}
+              </Text>
+            )}
+          </Card.Body>
+        </Card.Root>
 
-        <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-          <div>
-            <h4>By Category</h4>
-            <ul style={{ listStyle: "none", padding: 0 }}>
-              {Array.from(summary.byCategory.entries()).map(([cat, amt]) => (
-                <li key={cat} style={{ marginBottom: "5px" }}>
-                  <strong>{cat}:</strong> ${amt}
-                </li>
-              ))}
-            </ul>
-          </div>
+        <Card.Root shadow="md" borderRadius="xl" mb={6}>
+          <Card.Header>
+            <Heading size="md">
+              {editingId ? "Edit Expense" : "Add New Expense"}
+            </Heading>
+          </Card.Header>
+          <Card.Body>
+            <Stack direction={{ base: "column", md: "row" }} gap={4}>
+              <Input
+                placeholder="Category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              />
+              <Input
+                type="number"
+                placeholder="Amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+              {editingId ? (
+                <Button colorPalette="green" onClick={handleEditSave}>
+                  Save
+                </Button>
+              ) : (
+                <Button colorPalette="teal" onClick={handleAdd}>
+                  Add
+                </Button>
+              )}
+            </Stack>
+          </Card.Body>
+        </Card.Root>
 
-          <div>
-            <h4>By Month</h4>
-            <ul style={{ listStyle: "none", padding: 0 }}>
-              {Array.from(summary.byMonth.entries()).map(([month, amt]) => (
-                <li key={month} style={{ marginBottom: "5px" }}>
-                  <strong>{month}:</strong> ${amt}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
+        <Stack direction="row" gap={4} mb={6}>
+          <Button
+            colorPalette="orange"
+            onClick={handleUndo}
+            color="black"
+            _dark={{ color: "white" }}
+          >
+            Undo
+          </Button>
+          <Button colorPalette="purple" onClick={handleRedo} color={"black"}>
+            Redo
+          </Button>
+        </Stack>
 
-      {/* Analytics */}
-      <div
-        style={{
-          marginBottom: "20px",
-          padding: "15px",
-          borderRadius: "8px",
-        }}
-      >
-        <h3>Analytics</h3>
-        {stats.biggestExpense && (
-          <p>
-            <strong>Biggest Expense:</strong> {stats.biggestExpense.category} -
-            ${stats.biggestExpense.amount}
-          </p>
-        )}
-        {stats.topCategory.category && (
-          <p>
-            <strong>Top Category:</strong> {stats.topCategory.category} ($
-            {stats.topCategory.amount})
-          </p>
-        )}
-        {stats.averageMonthly > 0 && (
-          <p>
-            <strong>Average Monthly Spending:</strong> $
-            {stats.averageMonthly.toFixed(2)}
-          </p>
-        )}
-      </div>
-
-      {/* Form */}
-      <div
-        style={{
-          marginBottom: "20px",
-          padding: "15px",
-          border: "1px solid #ddd",
-          borderRadius: "8px",
-        }}
-      >
-        <h3>{editingId ? "Edit Expense" : "Add New Expense"}</h3>
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            flexWrap: "wrap",
-            alignItems: "end",
-          }}
-        >
-          <div>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "5px",
-                fontWeight: "bold",
-              }}
-            >
-              Category
-            </label>
-            <input
-              type="text"
-              placeholder="Category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              style={{ padding: "8px", width: "120px" }}
-            />
-          </div>
-          <div>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "5px",
-                fontWeight: "bold",
-              }}
-            >
-              Amount
-            </label>
-            <input
-              type="number"
-              placeholder="Amount"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              style={{ padding: "8px", width: "120px" }}
-            />
-          </div>
-
-          <div>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "5px",
-                fontWeight: "bold",
-              }}
-            >
-              Date
-            </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              style={{ padding: "8px" }}
-            />
-          </div>
-
-          {editingId ? (
-            <button
-              onClick={handleEditSave}
-              style={{
-                padding: "8px 16px",
-                backgroundColor: "#4CAF50",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                height: "fit-content",
-              }}
-            >
-              Save
-            </button>
-          ) : (
-            <button
-              onClick={handleAdd}
-              style={{
-                padding: "8px 16px",
-                backgroundColor: "#2196F3",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                height: "fit-content",
-              }}
-            >
-              Add
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Undo/Redo Buttons */}
-      <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
-        <button
-          onClick={handleUndo}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#FF9800",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-          }}
-        >
-          Undo
-        </button>
-        <button
-          onClick={handleRedo}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#9C27B0",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-          }}
-        >
-          Redo
-        </button>
-      </div>
-
-      {/* Expense List */}
-      <div>
-        <h3>All Expenses ({expenses.length})</h3>
-        {expenses.length === 0 ? (
-          <p>No expenses yet. Add your first expense above!</p>
-        ) : (
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {expenses.map((expense) => (
-              <li
-                key={expense._id}
-                style={{
-                  padding: "10px",
-                  marginBottom: "10px",
-                  border: "1px solid #eee",
-                  borderRadius: "4px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <strong>{expense.category}</strong> - ${expense.amount} -{" "}
-                  {new Date(expense.date).toLocaleDateString()}
-                </div>
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <button
-                    onClick={() => handleEditStart(expense)}
-                    style={{
-                      padding: "5px 10px",
-                      backgroundColor: "#FFC107",
-                      color: "black",
-                      border: "none",
-                      borderRadius: "4px",
-                    }}
+        <Card.Root shadow="md" borderRadius="xl">
+          <Card.Header>
+            <Heading size="md">All Expenses ({expenses.length})</Heading>
+          </Card.Header>
+          <Card.Body>
+            {expenses.length === 0 ? (
+              <Text>No expenses yet. Add your first expense above!</Text>
+            ) : (
+              <Stack gap={3}>
+                {expenses.map((expense) => (
+                  <Box
+                    key={expense._id}
+                    p={3}
+                    border="1px solid"
+                    borderColor="gray.200"
+                    borderRadius="md"
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
                   >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(expense._id)}
-                    style={{
-                      padding: "5px 10px",
-                      backgroundColor: "#F44336",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
+                    <Text>
+                      <strong>{expense.category}</strong> - ${expense.amount} -{" "}
+                      {new Date(expense.date).toLocaleDateString()}
+                    </Text>
+                    <Stack direction="row" gap={2}>
+                      <Button
+                        size="sm"
+                        colorPalette="yellow"
+                        onClick={() => handleEditStart(expense)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        colorPalette="red"
+                        onClick={() => handleDelete(expense._id)}
+                      >
+                        Delete
+                      </Button>
+                    </Stack>
+                  </Box>
+                ))}
+              </Stack>
+            )}
+          </Card.Body>
+        </Card.Root>
+      </Container>
+    </Box>
   );
 };
 
